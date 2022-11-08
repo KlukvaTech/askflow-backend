@@ -3,8 +3,15 @@ from flask import jsonify
 from bs4 import BeautifulSoup
 from bs4.element import Comment
 from flask import request
+import requests
 
 app = Flask(__name__)
+
+API_URL = "https://api-inference.huggingface.co/models/AlexKay/xlm-roberta-large-qa-multilingual-finedtuned-ru"
+
+def query(payload):
+    response = requests.post(API_URL, json=payload)
+    return response.json()
 
 def tag_visible(element):
     if element.parent.name in ['style', 'script', 'head', 'title', 'meta', '[document]']:
@@ -22,8 +29,19 @@ def text_from_html(body):
 @app.route('/text', methods=["POST"])
 def echo_text():
     req = request.get_json()
-    d = {'LOL KEK' : text_from_html(req['text'])}
-    return jsonify(d)
+    txt = text_from_html(req['text'])
+    question = req['question']
+    output = True
+    while output:
+        res = query({
+            "inputs": {
+                "question": question,
+                "context": txt
+            },
+        })
+        output = 'error' in res.keys()
+    
+    return jsonify(res)
 
 @app.route('/baobab', methods=["POST"])
 def baobab_text():
