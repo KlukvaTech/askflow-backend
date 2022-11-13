@@ -56,4 +56,7 @@ def answer_extension():
 
 @app.route('/', methods=["GET"])
 def hello_world():
-    return "Ilya lox"
+    return "Hello ngrok!"
+
+if __name__ == "__main__":
+   app.run()
