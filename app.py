@@ -43,7 +43,7 @@ def echo_text():
     
     return jsonify(res)
 
-@app.route('/only_text', methods=["POST"])
+@app.route('/onlytext', methods=["POST"])
 def echo_only_text():
     req = request.get_json()
     txt = req['text']
