@@ -43,6 +43,23 @@ def echo_text():
     
     return jsonify(res)
 
+@app.route('/only_text', methods=["POST"])
+def echo_only_text():
+    req = request.get_json()
+    txt = req['text']
+    question = req['question']
+    output = True
+    while output:
+        res = query({
+            "inputs": {
+                "question": question,
+                "context": txt
+            },
+        })
+        output = 'error' in res.keys()
+    
+    return jsonify(res)
+
 @app.route('/baobab', methods=["POST"])
 def baobab_text():
     dt = request.get_json()
