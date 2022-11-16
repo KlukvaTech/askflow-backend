@@ -58,7 +58,7 @@ def echo_only_text():
         })
         output = 'error' in res.keys()
     
-    return jsonify(res)
+    return res
 
 @app.route('/baobab', methods=["POST"])
 def baobab_text():
