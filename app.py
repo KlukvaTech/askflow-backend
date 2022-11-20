@@ -4,10 +4,13 @@ from bs4 import BeautifulSoup
 from bs4.element import Comment
 from flask import request
 import requests
+import logging
 
 app = Flask(__name__)
 
 API_URL = "https://api-inference.huggingface.co/models/AlexKay/xlm-roberta-large-qa-multilingual-finedtuned-ru"
+
+logging.basicConfig(level=logging.INFO)
 
 def query(payload):
     response = requests.post(API_URL, json=payload)
@@ -46,6 +49,7 @@ def echo_text():
 @app.route('/onlytext', methods=["POST"])
 def echo_only_text():
     req = request.get_json()
+    logging.info(f'onlytext: request: {req}')
     txt = req['text']
     question = req['question']
     output = True
@@ -56,6 +60,7 @@ def echo_only_text():
                 "context": txt
             },
         })
+        logging.info(f'onlytext: send request: {res}')
         output = 'error' in res.keys()
     
     return res
