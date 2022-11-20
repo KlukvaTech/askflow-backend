@@ -5,15 +5,19 @@ from bs4.element import Comment
 from flask import request
 import requests
 import logging
+import os
 
 app = Flask(__name__)
-
+TOKEN = os.getenv('TOKEN')
 API_URL = "https://api-inference.huggingface.co/models/AlexKay/xlm-roberta-large-qa-multilingual-finedtuned-ru"
+BEARER = "Bearer " + TOKEN
+headers = {"Authorization": BEARER}
+
 
 logging.basicConfig(level=logging.INFO)
 
 def query(payload):
-    response = requests.post(API_URL, json=payload)
+    response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()
 
 def tag_visible(element):
