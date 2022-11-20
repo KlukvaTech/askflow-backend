@@ -41,7 +41,7 @@ def echo_text():
         })
         output = 'error' in res.keys()
     
-    return jsonify(res)
+    return res
 
 @app.route('/onlytext', methods=["POST"])
 def echo_only_text():
