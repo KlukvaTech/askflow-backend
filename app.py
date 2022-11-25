@@ -66,7 +66,7 @@ def echo_only_text():
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
-    new_lst = [x for x in new_lst if x]
+    new_lst = [x for x in new_lst if x != "" or x != " "]
     embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
     
     indexes = set()
@@ -116,7 +116,7 @@ def echo_only_text():
         logging.info(f'onlytext: send request: {res}')
         output = 'error' in res.keys()
         if output:
-            sleep(3)
+            sleep(5)
     res['context'] = get_context_for_response(context)
     res['answer'] = res['anwer'].rstrip()
     return res
