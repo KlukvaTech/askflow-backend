@@ -63,10 +63,10 @@ def echo_only_text():
 
     txt = txt.replace('\n', '. ')
     lst = [_.text for _ in list(sentenize(txt))]
+    lst = [x for x in lst if x]
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
-    new_lst = [x for x in new_lst if x]
     embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
 
     indexes = set()
@@ -95,6 +95,13 @@ def echo_only_text():
             ctx += lst[el]
             ctx += " "
         return ctx
+    
+    def get_context_for_response(set_indexes):
+        ctx = ""
+        for el in set_indexes:
+            ctx += new_lst[el]
+            ctx += " "
+        return ctx
 
     context = get_context(indexes)
 
@@ -109,8 +116,9 @@ def echo_only_text():
         logging.info(f'onlytext: send request: {res}')
         output = 'error' in res.keys()
         if output:
-            sleep(1)
-    res['context'] = context
+            sleep(3)
+    res['context'] = get_context_for_response(context)
+    res['answer'] = res['anwer'].rstrip()
     return res
 
 @app.route('/baobab', methods=["POST"])
