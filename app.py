@@ -107,8 +107,10 @@ def echo_only_text():
             },
         })
         logging.info(f'onlytext: send request: {res}')
-        sleep(1000)
         output = 'error' in res.keys()
+        if output:
+            sleep(1)
+    res['context'] = context
     return res
 
 @app.route('/baobab', methods=["POST"])
