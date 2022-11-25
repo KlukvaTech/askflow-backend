@@ -63,12 +63,12 @@ def echo_only_text():
 
     txt = txt.replace('\n', '. ')
     lst = [_.text for _ in list(sentenize(txt))]
-    lst = [x for x in lst if x]
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
+    new_lst = [x for x in new_lst if x]
     embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
-
+    
     indexes = set()
 
     def add_idx_to_set(idx):
