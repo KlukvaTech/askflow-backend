@@ -117,7 +117,7 @@ def echo_only_text():
         output = 'error' in res.keys()
         if output:
             sleep(5)
-    res['context'] = get_context_for_response(context)
+    res['context'] = get_context_for_response(indexes)
     res['answer'] = res['anwer'].rstrip()
     return res
 
