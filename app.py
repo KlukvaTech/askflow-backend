@@ -66,7 +66,7 @@ def echo_only_text():
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
-    new_lst = [x for x in new_lst if x != "" or x != " "]
+    new_lst = [x for x in new_lst if x]
     embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
     
     indexes = set()
