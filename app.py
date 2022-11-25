@@ -118,7 +118,7 @@ def echo_only_text():
         if output:
             sleep(5)
     res['context'] = get_context_for_response(indexes)
-    res['answer'] = res['anwer'].rstrip()
+    res['answer'] = res['answer'].rstrip()
     return res
 
 @app.route('/baobab', methods=["POST"])
