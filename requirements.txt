@@ -1,5 +1,4 @@
 flask
-bs4
 requests
 gunicorn
 compress_fasttext[full]

@@ -1,7 +1,5 @@
 from flask import Flask
 from flask import jsonify
-from bs4 import BeautifulSoup
-from bs4.element import Comment
 from flask import request
 import requests
 import logging
@@ -56,6 +54,7 @@ def query(payload):
 
 @app.route('/onlytext', methods=["POST"])
 def echo_only_text():
+    query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
     req = request.get_json()
     logging.info(f'onlytext: request: {req}')
     txt = req['text']
@@ -111,12 +110,12 @@ def echo_only_text():
             "inputs": {
                 "question": question,
                 "context": context
-            },
+            }
         })
         logging.info(f'onlytext: send request: {res}')
         output = 'error' in res.keys()
         if output:
-            sleep(5)
+            sleep(10)
     res['context'] = get_context_for_response(indexes)
     res['answer'] = res['answer'].rstrip()
     return res
