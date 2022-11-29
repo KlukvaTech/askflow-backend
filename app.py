@@ -54,11 +54,16 @@ def query(payload):
 
 @app.route('/onlytext', methods=["POST"])
 def echo_only_text():
+    try:
+        req = request.get_json()
+        logging.info(f'onlytext: request: {req}')
+        txt = req['text']
+        question = req['question']
+    except:
+        logging.info(f'Failed. Incorrect input')
+        return "Incorrect input"
+
     query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
-    req = request.get_json()
-    logging.info(f'onlytext: request: {req}')
-    txt = req['text']
-    question = req['question']
 
     txt = txt.replace('\n', '. ')
     lst = [_.text for _ in list(sentenize(txt))]
@@ -70,11 +75,11 @@ def echo_only_text():
     
     indexes = set()
 
-    def add_idx_to_set(idx):
-        idx = int(idx)
-        for i in range(idx - 1, idx + 2):
-            if 0 <= i < len(lst):
-                indexes.add(i)
+    # def add_idx_to_set(idx):
+    #     idx = int(idx)
+    #     for i in range(idx - 1, idx + 2):
+    #         if 0 <= i < len(lst):
+    #             indexes.add(i)
 
     def get_result(text):
         query = embed(text)
