@@ -84,14 +84,15 @@ def echo_only_text():
 
         vals = sorted(cosines, key=lambda x: x[0])
         idx_ans = int(vals[-1][1])
-        add_idx_to_set(idx_ans)
+        #add_idx_to_set(idx_ans)
+        indexes.add(idx_ans)
     
     get_result(kl_preprocess(question))
 
     def get_context(set_indexes):
         ctx = ""
         for el in set_indexes:
-            ctx += lst[el]
+            ctx += new_lst[el]
             ctx += " "
         return ctx
     
@@ -103,6 +104,7 @@ def echo_only_text():
         return ctx
 
     context = get_context(indexes)
+    indexes.clear()
 
     output = True
     while output:
@@ -118,6 +120,7 @@ def echo_only_text():
             sleep(10)
     res['context'] = get_context_for_response(indexes)
     res['answer'] = res['answer'].rstrip()
+    logging.info(f'onlytext: return answer: {res}')
     return res
 
 @app.route('/baobab', methods=["POST"])
