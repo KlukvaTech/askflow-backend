@@ -96,13 +96,6 @@ def echo_only_text():
             ctx += " "
         return ctx
     
-    def get_context_for_response(set_indexes):
-        ctx = ""
-        for el in set_indexes:
-            ctx += new_lst[el]
-            ctx += " "
-        return ctx
-
     context = get_context(indexes)
 
     output = True
@@ -117,8 +110,8 @@ def echo_only_text():
         output = 'error' in res.keys()
         if output:
             sleep(10)
-    res['context'] = get_context_for_response(indexes)
-    res['answer'] = res['answer'].rstrip()
+    res['context'] = context.strip()
+    res['answer'] = res['answer'].strip()
     logging.info(f'onlytext: return answer: {res}')
     indexes.clear()
     return res
