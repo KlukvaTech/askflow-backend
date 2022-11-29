@@ -104,7 +104,6 @@ def echo_only_text():
         return ctx
 
     context = get_context(indexes)
-    indexes.clear()
 
     output = True
     while output:
@@ -121,6 +120,7 @@ def echo_only_text():
     res['context'] = get_context_for_response(indexes)
     res['answer'] = res['answer'].rstrip()
     logging.info(f'onlytext: return answer: {res}')
+    indexes.clear()
     return res
 
 @app.route('/baobab', methods=["POST"])
