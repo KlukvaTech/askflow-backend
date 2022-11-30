@@ -13,9 +13,13 @@ from time import sleep
 
 app = Flask(__name__)
 TOKEN = os.getenv('TOKEN')
-API_URL = "https://api-inference.huggingface.co/models/AlexKay/xlm-roberta-large-qa-multilingual-finedtuned-ru"
-BEARER = "Bearer " + TOKEN
-headers = {"Authorization": BEARER}
+TOKEN_SPACE = os.getenv('TOKEN_SPACE')
+#API_URL = "https://api-inference.huggingface.co/models/AlexKay/xlm-roberta-large-qa-multilingual-finedtuned-ru"
+API_URL = "https://codemurt-qa-model2.hf.space/api/predict"
+# BEARER = "Bearer " + TOKEN
+# headers = {"Authorization": BEARER}
+BEARER_SPACE = "Bearer " + TOKEN_SPACE
+headers = {"Authorization": BEARER_SPACE, "Content-Type": "application/json"}
 
 model = compress_fasttext.models.CompressedFastTextKeyedVectors.load('model/geowac_tokens_sg_300_5_2020-100K-20K-100.bin')
 
@@ -63,7 +67,7 @@ def echo_only_text():
         logging.info(f'Failed. Incorrect input')
         return "Incorrect input"
 
-    query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
+    #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
 
     txt = txt.replace('\n', '. ')
     lst = [_.text for _ in list(sentenize(txt))]
@@ -105,18 +109,22 @@ def echo_only_text():
 
     output = True
     while output:
+        # res = query({
+        #     "inputs": {
+        #         "question": question,
+        #         "context": context
+        #     }
+        # })
         res = query({
-            "inputs": {
-                "question": question,
-                "context": context
-            }
+            "data": [question, context]
         })
         logging.info(f'onlytext: send request: {res}')
         output = 'error' in res.keys()
         if output:
-            sleep(10)
+            sleep(3)
     res['context'] = context.strip()
-    res['answer'] = res['answer'].strip()
+    #res['answer'] = res['answer'].strip()
+    res['answer'] = res['data'][0].strip()
     logging.info(f'onlytext: return answer: {res}')
     indexes.clear()
     return res
