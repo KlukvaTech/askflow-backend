@@ -145,16 +145,17 @@ def all_context():
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
     new_lst = [x for x in new_lst if x]
+    context = " ".join(new_lst)
     output = True
     while output:
         res = query({
-            "data": [question, txt]
+            "data": [question, context]
         })
         logging.info(f'onlytext: send request: {res}')
         output = 'error' in res.keys()
         if output:
             sleep(3)
-    res['context'] = txt.strip()
+    res['context'] = context.strip()
     res['answer'] = res['data'][0].strip()
     logging.info(f'onlytext: return answer: {res}')
 
