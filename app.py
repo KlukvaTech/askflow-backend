@@ -27,7 +27,7 @@ logging.basicConfig(level=logging.INFO)
 
 def kl_preprocess(sent):
     sent = sent.lower()
-    res = re.findall('[а-яё]+', sent)
+    res = re.findall('[а-яёa-z0-9]+', sent)
     tmp_sent = ""
     for i in res:
         tmp_sent += i
@@ -140,6 +140,11 @@ def all_context():
         logging.info(f'Failed. Incorrect input')
         return "Incorrect input"
     txt = txt.replace('\n', '. ')
+    lst = [_.text for _ in list(sentenize(txt))]
+    new_lst = []
+    for sent in lst:
+        new_lst.append(kl_preprocess(sent))
+    new_lst = [x for x in new_lst if x]
     output = True
     while output:
         res = query({
