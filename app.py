@@ -155,7 +155,7 @@ def all_context():
         output = 'error' in res.keys()
         if output:
             sleep(3)
-    res['context'] = context.strip()
+    res['context'] = txt.strip()
     res['answer'] = res['data'][0].strip()
     logging.info(f'onlytext: return answer: {res}')
 
