@@ -129,6 +129,32 @@ def echo_only_text():
     indexes.clear()
     return res
 
+@app.route('/allcontext', methods=["POST"])
+def all_context():
+    try:
+        req = request.get_json()
+        logging.info(f'onlytext: request: {req}')
+        txt = req['text']
+        question = req['question']
+    except:
+        logging.info(f'Failed. Incorrect input')
+        return "Incorrect input"
+    txt = txt.replace('\n', '. ')
+    output = True
+    while output:
+        res = query({
+            "data": [question, txt]
+        })
+        logging.info(f'onlytext: send request: {res}')
+        output = 'error' in res.keys()
+        if output:
+            sleep(3)
+    res['context'] = txt.strip()
+    res['answer'] = res['data'][0].strip()
+    logging.info(f'onlytext: return answer: {res}')
+
+    return res
+
 @app.route('/baobab', methods=["POST"])
 def baobab_text():
     dt = request.get_json()
