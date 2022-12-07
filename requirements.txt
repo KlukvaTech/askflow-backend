@@ -4,3 +4,4 @@ gunicorn
 compress_fasttext[full]
 razdel
 numpy
+trafilatura

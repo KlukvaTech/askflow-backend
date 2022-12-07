@@ -10,6 +10,7 @@ import numpy as np
 import re
 from string import punctuation
 from time import sleep
+import trafilatura
 
 app = Flask(__name__)
 TOKEN = os.getenv('TOKEN')
@@ -102,6 +103,81 @@ def echo_only_text():
         ctx = ""
         for el in set_indexes:
             ctx += new_lst[el]
+            ctx += " "
+        return ctx
+    
+    context = get_context(indexes)
+
+    output = True
+    while output:
+        # res = query({
+        #     "inputs": {
+        #         "question": question,
+        #         "context": context
+        #     }
+        # })
+        res = query({
+            "data": [question, context]
+        })
+        logging.info(f'onlytext: send request: {res}')
+        output = 'error' in res.keys()
+        if output:
+            sleep(3)
+    res['context'] = context.strip()
+    #res['answer'] = res['answer'].strip()
+    res['answer'] = res['data'][0].strip()
+    logging.info(f'onlytext: return answer: {res}')
+    indexes.clear()
+    return res
+
+@app.route('/onlyhtml', methods=["POST"])
+def echo_only_text():
+    try:
+        req = request.get_json()
+        logging.info(f'onlytext: request: {req}')
+        html_req = req['html']
+        question = req['question']
+    except:
+        logging.info(f'Failed. Incorrect input')
+        return "Incorrect input"
+
+    #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
+
+    txt = trafilatura.extract(html_req, include_comments=False)
+
+    txt = txt.replace('\n', '. ')
+    lst = [_.text for _ in list(sentenize(txt))]
+    new_lst = []
+    for sent in lst:
+        new_lst.append(kl_preprocess(sent))
+    #new_lst = [x for x in new_lst if x]
+    embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
+    
+    indexes = set()
+
+    # def add_idx_to_set(idx):
+    #     idx = int(idx)
+    #     for i in range(idx - 1, idx + 2):
+    #         if 0 <= i < len(lst):
+    #             indexes.add(i)
+
+    def get_result(text):
+        query = embed(text)
+
+        cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
+        print("got cosines")
+
+        vals = sorted(cosines, key=lambda x: x[0])
+        idx_ans = int(vals[-1][1])
+        #add_idx_to_set(idx_ans)
+        indexes.add(idx_ans)
+    
+    get_result(kl_preprocess(question))
+
+    def get_context(set_indexes):
+        ctx = ""
+        for el in set_indexes:
+            ctx += lst[el]
             ctx += " "
         return ctx
     
