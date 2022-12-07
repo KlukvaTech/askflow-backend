@@ -33,7 +33,7 @@ def kl_preprocess(sent):
     for i in res:
         tmp_sent += i
         tmp_sent += ' '
-    tmp_sent = tmp_sent.rstrip()
+    tmp_sent = tmp_sent.strip()
     return tmp_sent
 
 def kl_tokenize(sentence):
@@ -47,7 +47,9 @@ def cosine(u, v):
 
 def embed(text):
     if text == "":
-        return 0
+        return 0.0
+    if len(text.split()) <= 2:
+        return 0.0 
     res = []
     tokens = kl_tokenize(text)
     for token in tokens:
