@@ -46,6 +46,8 @@ def cosine(u, v):
     return res
 
 def embed(text):
+    if text == "":
+        return 0
     res = []
     tokens = kl_tokenize(text)
     for token in tokens:
@@ -143,11 +145,11 @@ def echo_only_html():
 
     #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
 
-    txt = trafilatura.extract(html_req, include_comments=False)
+    txt = trafilatura.extract(html_req)
 
     new_txt = ""
     for i in range(1, len(txt)):
-        if txt[i] == '\n' and txt[i - 1] != '.':
+        if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?' or txt[i - 1] != ';'):
             new_txt += ". "
         elif txt[i] == '\n':
             new_txt += " "
@@ -157,7 +159,7 @@ def echo_only_html():
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
-    new_lst = [x for x in new_lst if x]
+    #new_lst = [x for x in new_lst if x]
     embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
     
     indexes = set()
@@ -184,7 +186,7 @@ def echo_only_html():
     def get_context(set_indexes):
         ctx = ""
         for el in set_indexes:
-            ctx += new_lst[el]
+            ctx += lst[el]
             ctx += " "
         return ctx
     
