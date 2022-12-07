@@ -157,7 +157,7 @@ def echo_only_html():
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
-    #new_lst = [x for x in new_lst if x]
+    new_lst = [x for x in new_lst if x]
     embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
     
     indexes = set()
@@ -184,7 +184,7 @@ def echo_only_html():
     def get_context(set_indexes):
         ctx = ""
         for el in set_indexes:
-            ctx += lst[el]
+            ctx += new_lst[el]
             ctx += " "
         return ctx
     
