@@ -145,7 +145,7 @@ def echo_only_html():
 
     txt = trafilatura.extract(html_req, include_comments=False)
 
-    txt = txt.replace('\n', '. ')
+    txt = txt.replace('\n', ' ')
     lst = [_.text for _ in list(sentenize(txt))]
     new_lst = []
     for sent in lst:
