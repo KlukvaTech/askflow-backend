@@ -131,7 +131,7 @@ def echo_only_text():
     return res
 
 @app.route('/onlyhtml', methods=["POST"])
-def echo_only_text():
+def echo_only_html():
     try:
         req = request.get_json()
         logging.info(f'onlytext: request: {req}')
