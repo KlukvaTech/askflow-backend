@@ -134,9 +134,9 @@ def echo_only_text():
 def echo_only_html():
     try:
         req = request.get_json()
-        logging.info(f'onlytext: request: {req}')
         html_req = req['html']
         question = req['question']
+        logging.info(f'onlytext: request: {question}')
     except:
         logging.info(f'Failed. Incorrect input')
         return "Incorrect input"
@@ -145,7 +145,14 @@ def echo_only_html():
 
     txt = trafilatura.extract(html_req, include_comments=False)
 
-    txt = txt.replace('\n', ' ')
+    new_txt = ""
+    for i in range(1, len(txt)):
+        if txt[i] == '\n' and txt[i - 1] != '.':
+            new_txt += ". "
+        elif txt[i] == '\n':
+            new_txt += " "
+        else:
+            new_txt += txt[i]
     lst = [_.text for _ in list(sentenize(txt))]
     new_lst = []
     for sent in lst:
