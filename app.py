@@ -153,7 +153,7 @@ def echo_only_html():
             new_txt += " "
         else:
             new_txt += txt[i]
-    lst = [_.text for _ in list(sentenize(txt))]
+    lst = [_.text for _ in list(sentenize(new_txt))]
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
