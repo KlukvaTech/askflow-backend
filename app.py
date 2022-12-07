@@ -33,8 +33,7 @@ def kl_preprocess(sent):
     for i in res:
         tmp_sent += i
         tmp_sent += ' '
-    tmp_sent = tmp_sent.strip()
-    return tmp_sent
+    return tmp_sent.strip()
 
 def kl_tokenize(sentence):
     tokens = [_.text for _ in list(tokenize(sentence))]
@@ -46,10 +45,6 @@ def cosine(u, v):
     return res
 
 def embed(text):
-    if text == "":
-        return 0.0
-    if len(text.split()) <= 2:
-        return 0.0 
     res = []
     tokens = kl_tokenize(text)
     for token in tokens:
@@ -61,78 +56,78 @@ def query(payload):
     response = requests.post(API_URL, headers=headers, json=payload)
     return response.json()
 
-@app.route('/onlytext', methods=["POST"])
-def echo_only_text():
-    try:
-        req = request.get_json()
-        logging.info(f'onlytext: request: {req}')
-        txt = req['text']
-        question = req['question']
-    except:
-        logging.info(f'Failed. Incorrect input')
-        return "Incorrect input"
+# @app.route('/onlytext', methods=["POST"])
+# def echo_only_text():
+#     try:
+#         req = request.get_json()
+#         logging.info(f'onlytext: request: {req}')
+#         txt = req['text']
+#         question = req['question']
+#     except:
+#         logging.info(f'Failed. Incorrect input')
+#         return "Incorrect input"
 
-    #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
+#     #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
 
-    txt = txt.replace('\n', '. ')
-    lst = [_.text for _ in list(sentenize(txt))]
-    new_lst = []
-    for sent in lst:
-        new_lst.append(kl_preprocess(sent))
-    new_lst = [x for x in new_lst if x]
-    embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
+#     txt = txt.replace('\n', '. ')
+#     lst = [_.text for _ in list(sentenize(txt))]
+#     new_lst = []
+#     for sent in lst:
+#         new_lst.append(kl_preprocess(sent))
+#     new_lst = [x for x in new_lst if x]
+#     embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
     
-    indexes = set()
+#     indexes = set()
 
-    # def add_idx_to_set(idx):
-    #     idx = int(idx)
-    #     for i in range(idx - 1, idx + 2):
-    #         if 0 <= i < len(lst):
-    #             indexes.add(i)
+#     # def add_idx_to_set(idx):
+#     #     idx = int(idx)
+#     #     for i in range(idx - 1, idx + 2):
+#     #         if 0 <= i < len(lst):
+#     #             indexes.add(i)
 
-    def get_result(text):
-        query = embed(text)
+#     def get_result(text):
+#         query = embed(text)
 
-        cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
-        print("got cosines")
+#         cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
+#         print("got cosines")
 
-        vals = sorted(cosines, key=lambda x: x[0])
-        idx_ans = int(vals[-1][1])
-        #add_idx_to_set(idx_ans)
-        indexes.add(idx_ans)
+#         vals = sorted(cosines, key=lambda x: x[0])
+#         idx_ans = int(vals[-1][1])
+#         #add_idx_to_set(idx_ans)
+#         indexes.add(idx_ans)
     
-    get_result(kl_preprocess(question))
+#     get_result(kl_preprocess(question))
 
-    def get_context(set_indexes):
-        ctx = ""
-        for el in set_indexes:
-            ctx += new_lst[el]
-            ctx += " "
-        return ctx
+#     def get_context(set_indexes):
+#         ctx = ""
+#         for el in set_indexes:
+#             ctx += new_lst[el]
+#             ctx += " "
+#         return ctx
     
-    context = get_context(indexes)
+#     context = get_context(indexes)
 
-    output = True
-    while output:
-        # res = query({
-        #     "inputs": {
-        #         "question": question,
-        #         "context": context
-        #     }
-        # })
-        res = query({
-            "data": [question, context]
-        })
-        logging.info(f'onlytext: send request: {res}')
-        output = 'error' in res.keys()
-        if output:
-            sleep(3)
-    res['context'] = context.strip()
-    #res['answer'] = res['answer'].strip()
-    res['answer'] = res['data'][0].strip()
-    logging.info(f'onlytext: return answer: {res}')
-    indexes.clear()
-    return res
+#     output = True
+#     while output:
+#         # res = query({
+#         #     "inputs": {
+#         #         "question": question,
+#         #         "context": context
+#         #     }
+#         # })
+#         res = query({
+#             "data": [question, context]
+#         })
+#         logging.info(f'onlytext: send request: {res}')
+#         output = 'error' in res.keys()
+#         if output:
+#             sleep(3)
+#     res['context'] = context.strip()
+#     #res['answer'] = res['answer'].strip()
+#     res['answer'] = res['data'][0].strip()
+#     logging.info(f'onlytext: return answer: {res}')
+#     indexes.clear()
+#     return res
 
 @app.route('/onlyhtml', methods=["POST"])
 def echo_only_html():
@@ -151,7 +146,7 @@ def echo_only_html():
 
     new_txt = ""
     for i in range(1, len(txt)):
-        if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?' or txt[i - 1] != ';'):
+        if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
             new_txt += ". "
         elif txt[i] == '\n':
             new_txt += " "
@@ -209,44 +204,45 @@ def echo_only_html():
         output = 'error' in res.keys()
         if output:
             sleep(3)
-    res['context'] = context.strip()
+    response_output = res['data'][0]
+    response_output['context'] = context.strip()
     #res['answer'] = res['answer'].strip()
-    res['answer'] = res['data'][0].strip()
+    response_output['answer'] = response_output['answer'].strip()
     logging.info(f'onlytext: return answer: {res}')
     indexes.clear()
-    return res
+    return response_output
 
-@app.route('/allcontext', methods=["POST"])
-def all_context():
-    try:
-        req = request.get_json()
-        logging.info(f'onlytext: request: {req}')
-        txt = req['text']
-        question = req['question']
-    except:
-        logging.info(f'Failed. Incorrect input')
-        return "Incorrect input"
-    txt = txt.replace('\n', '. ')
-    lst = [_.text for _ in list(sentenize(txt))]
-    new_lst = []
-    for sent in lst:
-        new_lst.append(kl_preprocess(sent))
-    new_lst = [x for x in new_lst if x]
-    context = " ".join(new_lst)
-    output = True
-    while output:
-        res = query({
-            "data": [question, context]
-        })
-        logging.info(f'onlytext: send request: {res}')
-        output = 'error' in res.keys()
-        if output:
-            sleep(3)
-    res['context'] = txt.strip()
-    res['answer'] = res['data'][0].strip()
-    logging.info(f'onlytext: return answer: {res}')
+# @app.route('/allcontext', methods=["POST"])
+# def all_context():
+#     try:
+#         req = request.get_json()
+#         logging.info(f'onlytext: request: {req}')
+#         txt = req['text']
+#         question = req['question']
+#     except:
+#         logging.info(f'Failed. Incorrect input')
+#         return "Incorrect input"
+#     txt = txt.replace('\n', '. ')
+#     lst = [_.text for _ in list(sentenize(txt))]
+#     new_lst = []
+#     for sent in lst:
+#         new_lst.append(kl_preprocess(sent))
+#     new_lst = [x for x in new_lst if x]
+#     context = " ".join(new_lst)
+#     output = True
+#     while output:
+#         res = query({
+#             "data": [question, context]
+#         })
+#         logging.info(f'onlytext: send request: {res}')
+#         output = 'error' in res.keys()
+#         if output:
+#             sleep(3)
+#     res['context'] = txt.strip()
+#     res['answer'] = res['data'][0].strip()
+#     logging.info(f'onlytext: return answer: {res}')
 
-    return res
+#     return res
 
 @app.route('/baobab', methods=["POST"])
 def baobab_text():
