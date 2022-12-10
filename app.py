@@ -12,6 +12,10 @@ from string import punctuation
 from time import sleep
 import trafilatura
 
+from transformers import AutoTokenizer, AutoModel
+import torch
+import torch.nn.functional as F
+
 app = Flask(__name__)
 TOKEN = os.getenv('TOKEN')
 TOKEN_SPACE = os.getenv('TOKEN_SPACE')
@@ -23,6 +27,9 @@ BEARER_SPACE = "Bearer " + TOKEN_SPACE
 headers = {"Authorization": BEARER_SPACE, "Content-Type": "application/json"}
 
 model = compress_fasttext.models.CompressedFastTextKeyedVectors.load('model/geowac_tokens_sg_300_5_2020-100K-20K-100.bin')
+
+tokenizer = AutoTokenizer.from_pretrained("cointegrated/rubert-tiny")
+model_rubert = AutoModel.from_pretrained("cointegrated/rubert-tiny")
 
 logging.basicConfig(level=logging.INFO)
 
@@ -144,7 +151,7 @@ def echo_only_html():
 
     txt = trafilatura.extract(html_req)
 
-    new_txt = ""
+    new_txt = txt[0]
     for i in range(1, len(txt)):
         if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
             new_txt += ". "
@@ -210,6 +217,110 @@ def echo_only_html():
     response_output['answer'] = response_output['answer'].strip()
     logging.info(f'onlytext: return answer: {res}')
     indexes.clear()
+    return response_output
+
+@app.route('/onlyhtml_bert', methods=["POST"])
+def echo_only_html_bert():
+    try:
+        req = request.get_json()
+        html_req = req['html']
+        question = req['question']
+        logging.info(f'onlytext: request: {question}')
+    except:
+        logging.info(f'Failed. Incorrect input')
+        return "Incorrect input"
+
+    #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
+
+    txt = trafilatura.extract(html_req)
+    txt = txt.replace("\n", " ")
+    # new_txt = txt[0]
+    # for i in range(1, len(txt)):
+    #     if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
+    #         new_txt += ". "
+    #     elif txt[i] == '\n':
+    #         new_txt += " "
+    #     else:
+    #         new_txt += txt[i]
+    lst = [_.text for _ in list(sentenize(txt))]
+    new_lst = []
+    for sent in lst:
+        new_lst.append(kl_preprocess(sent))
+    #new_lst = [x for x in new_lst if x]
+
+    def mean_pooling(model_output, attention_mask):
+        token_embeddings = model_output.last_hidden_state #First element of model_output contains all token embeddings
+        input_mask_expanded = attention_mask.unsqueeze(-1).expand(token_embeddings.size()).float()
+        return torch.sum(token_embeddings * input_mask_expanded, 1) / torch.clamp(input_mask_expanded.sum(1), min=1e-9)
+
+    #Encode text
+    def encode(texts):
+        # Tokenize sentences
+        encoded_input = tokenizer(texts, padding=True, truncation=True, return_tensors='pt')
+
+        # Compute token embeddings
+        with torch.no_grad():
+            model_output = model_rubert(**encoded_input, return_dict=True)
+
+        # Perform pooling
+        embeddings = mean_pooling(model_output, encoded_input['attention_mask'])
+
+        # Normalize embeddings
+        embeddings = F.normalize(embeddings, p=2, dim=1)
+        
+        return embeddings
+    
+    preprocessed_question = kl_preprocess(question)
+    query_emb = encode(preprocessed_question)
+    doc_emb = encode(new_lst)
+
+    scores = torch.mm(query_emb, doc_emb.transpose(0, 1))[0].cpu().tolist()
+
+    doc_score_pairs = list(zip(new_lst, scores, range(len(new_lst))))
+    doc_score_pairs = sorted(doc_score_pairs, key=lambda x: x[1], reverse=True)
+
+    indexes = set()
+
+    def add_idx_to_set(idx):
+        idx = int(idx)
+        for i in range(idx - 2, idx + 3):
+            if 0 <= i < len(lst):
+                indexes.add(i)
+
+    def get_context(set_indexes):
+        ctx = ""
+        for el in set_indexes:
+            ctx += lst[el]
+            ctx += " "
+        return ctx
+
+    def send_request(context):
+        output = True
+        while output:
+            res = query({
+                "data": [question, context]
+            })
+            logging.info(f'onlytext: send request: {res}')
+            output = 'error' in res.keys()
+            if output:
+                sleep(3)
+        return res
+
+    mx_score = -1.0
+    for doc, score, doc_idx in doc_score_pairs[:5]:
+        add_idx_to_set(doc_idx)
+        curr_ctx = get_context(indexes)
+        indexes.clear()
+        curr_res = send_request(curr_ctx)
+        if curr_res['score'] > mx_score:
+            main_res = curr_res
+            mx_score = curr_res['score']
+            main_ctx = curr_ctx
+    
+    response_output = main_res['data'][0]
+    response_output['context'] = main_ctx.strip()
+    response_output['answer'] = response_output['answer'].strip()
+    logging.info(f'onlytext: return answer: {main_res}')
     return response_output
 
 # @app.route('/allcontext', methods=["POST"])
