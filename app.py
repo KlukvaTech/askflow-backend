@@ -186,7 +186,7 @@ def echo_only_html():
             output = 'error' in res.keys()
             if output:
                 sleep(3)
-        return res
+        return res['data'][0]
 
     mx_score = -1.0
     main_res = None
@@ -210,21 +210,18 @@ def echo_only_html():
     
     get_result(kl_preprocess(question))
 
-   
-
-    response_output = main_res['data'][0]
-    response_output['answer'] = response_output['answer'].strip()
+    main_res['answer'] = main_res['answer'].strip()
     
     ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
     for ctx_sent in ctx_lst:
-        if response_output['answer'] in ctx_sent:
-            response_output['context'] = ctx_sent.strip()
+        if main_res['answer'] in ctx_sent:
+            main_res['context'] = ctx_sent.strip()
 
     #res['answer'] = res['answer'].strip()
     
-    logging.info(f'onlytext: return answer: {response_output}')
+    logging.info(f'onlytext: return answer: {main_res}')
     indexes.clear()
-    return response_output
+    return main_res
 
 # @app.route('/onlyhtml_bert', methods=["POST"])
 # def echo_only_html_bert():
