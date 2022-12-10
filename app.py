@@ -216,7 +216,9 @@ def echo_only_html():
     ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
     for ctx_sent in ctx_lst:
         if main_res['answer'] in ctx_sent:
-            main_res['context'] = ctx_sent.strip()
+            if ctx_sent[-1] == '.':
+                main_res['context'] = ctx_sent[:-1].strip()
+            
 
     #res['answer'] = res['answer'].strip()
     
