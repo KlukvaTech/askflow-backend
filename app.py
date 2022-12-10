@@ -188,14 +188,14 @@ def echo_only_html():
                 sleep(3)
         return res['data'][0]
 
-    mx_score = -1.0
-    main_res = None
-    main_ctx = None
+    
+    
     def get_result(text):
         query = embed(text)
-
+        main_res = None
+        main_ctx = None
         cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
-
+        mx_score = -1.0    
         vals = sorted(cosines, key=lambda x: x[0], reverse=True)
         for cos, cos_idx in vals:
             add_idx_to_set(int(cos_idx))
@@ -206,9 +206,10 @@ def echo_only_html():
                 main_res = curr_res
                 mx_score = curr_res['score']
                 main_ctx = curr_ctx
+        return main_res, main_ctx
         #indexes.add(idx_ans)
     
-    get_result(kl_preprocess(question))
+    main_res, main_ctx = get_result(kl_preprocess(question))
 
     main_res['answer'] = main_res['answer'].strip()
     
