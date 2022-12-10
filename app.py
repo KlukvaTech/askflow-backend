@@ -232,7 +232,7 @@ def echo_only_html():
             
 
     #res['answer'] = res['answer'].strip()
-    
+    main_res['answer'] = main_res['answer'].strip()
     logging.info(f'onlytext: return answer: {main_res}')
     indexes.clear()
     return main_res
