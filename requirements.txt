@@ -5,5 +5,3 @@ compress_fasttext[full]
 razdel
 numpy
 trafilatura
-torch
-transformers
