@@ -216,8 +216,16 @@ def echo_only_html():
     ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
     for ctx_sent in ctx_lst:
         if main_res['answer'] in ctx_sent:
-            if ctx_sent[-1] == '.':
-                main_res['context'] = ctx_sent[:-1].strip()
+            for sent_idx in range(len(ctx_sent)):
+                if ctx_sent[sent_idx] not in punctuation:
+                    ctx_sent = ctx_sent[sent_idx:]
+                    break
+            for sent_idx in range(len(ctx_sent) - 1, 0, -1):
+                if ctx_sent[sent_idx] not in punctuation:
+                    ctx_sent = ctx_sent[:sent_idx + 1]
+                    break
+            
+            main_res['context'] = ctx_sent.strip()
             
 
     #res['answer'] = res['answer'].strip()
