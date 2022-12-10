@@ -145,16 +145,16 @@ def echo_only_html():
     #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
 
     txt = trafilatura.extract(html_req)
-    txt = txt.replace('\n', ' ')
-    # new_txt = txt[0]
-    # for i in range(1, len(txt)):
-    #     if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
-    #         new_txt += ". "
-    #     elif txt[i] == '\n':
-    #         new_txt += " "
-    #     else:
-    #         new_txt += txt[i]
-    lst = [_.text for _ in list(sentenize(txt))]
+    #txt = txt.replace('\n', ' ')
+    new_txt = txt[0]
+    for i in range(1, len(txt)):
+        if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
+            new_txt += ". "
+        elif txt[i] == '\n':
+            new_txt += " "
+        else:
+            new_txt += txt[i]
+    lst = [_.text for _ in list(sentenize(new_txt))]
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
@@ -165,54 +165,60 @@ def echo_only_html():
 
     def add_idx_to_set(idx):
         idx = int(idx)
-        for i in range(idx - 1, idx + 2):
+        for i in range(idx - 2, idx + 3):
             if 0 <= i < len(lst):
                 indexes.add(i)
-
-    def get_result(text):
-        query = embed(text)
-
-        cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
-
-        vals = sorted(cosines, key=lambda x: x[0])
-        idx_ans = int(vals[-1][1])
-        add_idx_to_set(idx_ans)
-        #indexes.add(idx_ans)
     
-    get_result(kl_preprocess(question))
-
     def get_context(set_indexes):
         ctx = ""
         for el in set_indexes:
             ctx += lst[el]
             ctx += " "
         return ctx
-    
-    context = get_context(indexes)
 
-    output = True
-    while output:
-        # res = query({
-        #     "inputs": {
-        #         "question": question,
-        #         "context": context
-        #     }
-        # })
-        res = query({
-            "data": [question, context]
-        })
-        logging.info(f'onlytext: send request: {res}')
-        output = 'error' in res.keys()
-        if output:
-            sleep(3)
+    def send_request(context):
+        output = True
+        while output:
+            res = query({
+                "data": [question, context]
+            })
+            logging.info(f'onlytext: send request: {res}')
+            output = 'error' in res.keys()
+            if output:
+                sleep(3)
+        return res
 
-    response_output = res['data'][0]
+    mx_score = -1.0
+    main_res = None
+    main_ctx = None
+    def get_result(text):
+        query = embed(text)
+
+        cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
+
+        vals = sorted(cosines, key=lambda x: x[0], reverse=True)
+        for cos, cos_idx in vals:
+            add_idx_to_set(int(cos_idx))
+            curr_ctx = get_context(indexes)
+            indexes.clear()
+            curr_res = send_request(curr_ctx)
+            if curr_res['score'] > mx_score:
+                main_res = curr_res
+                mx_score = curr_res['score']
+                main_ctx = curr_ctx
+        #indexes.add(idx_ans)
     
+    get_result(kl_preprocess(question))
+
+   
+
+    response_output = main_res['data'][0]
     response_output['answer'] = response_output['answer'].strip()
     
-    for elem in indexes:
-        if response_output['answer'] in lst[elem]:
-            response_output['context'] = lst[elem].strip()
+    ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
+    for ctx_sent in ctx_lst:
+        if response_output['answer'] in ctx_sent:
+            response_output['context'] = ctx_sent.strip()
 
     #res['answer'] = res['answer'].strip()
     
