@@ -197,7 +197,7 @@ def echo_only_html():
         cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
         mx_score = -1.0    
         vals = sorted(cosines, key=lambda x: x[0], reverse=True)
-        for cos, cos_idx in vals:
+        for cos, cos_idx in vals[:5]:
             add_idx_to_set(int(cos_idx))
             curr_ctx = get_context(indexes)
             indexes.clear()
