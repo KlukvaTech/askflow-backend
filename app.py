@@ -211,21 +211,24 @@ def echo_only_html():
     
     main_res, main_ctx = get_result(kl_preprocess(question))
 
-    main_res['answer'] = main_res['answer'].strip()
+    def clean_sent(sent):
+        for sent_idx in range(len(sent)):
+            if sent[sent_idx] not in punctuation:
+                sent = sent[sent_idx:]
+                break
+        for sent_idx in range(len(sent) - 1, 0, -1):
+            if sent[sent_idx] not in punctuation:
+                sent = sent[:sent_idx + 1]
+                break
+        return sent
     
     ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
+    main_res['answer'] = clean_sent(main_res['answer'])
     for ctx_sent in ctx_lst:
         if main_res['answer'] in ctx_sent:
-            for sent_idx in range(len(ctx_sent)):
-                if ctx_sent[sent_idx] not in punctuation:
-                    ctx_sent = ctx_sent[sent_idx:]
-                    break
-            for sent_idx in range(len(ctx_sent) - 1, 0, -1):
-                if ctx_sent[sent_idx] not in punctuation:
-                    ctx_sent = ctx_sent[:sent_idx + 1]
-                    break
-            
+            ctx_sent = clean_sent(ctx_sent)
             main_res['context'] = ctx_sent.strip()
+            break
             
 
     #res['answer'] = res['answer'].strip()
