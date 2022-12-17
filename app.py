@@ -165,7 +165,7 @@ def echo_only_html():
 
     def add_idx_to_set(idx):
         idx = int(idx)
-        for i in range(idx - 2, idx + 3):
+        for i in range(idx - 4, idx + 6):
             if 0 <= i < len(lst):
                 indexes.add(i)
     
