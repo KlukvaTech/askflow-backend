@@ -145,16 +145,16 @@ def echo_only_html():
     #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
 
     txt = trafilatura.extract(html_req)
-    #txt = txt.replace('\n', ' ')
-    new_txt = txt[0]
-    for i in range(1, len(txt)):
-        if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
-            new_txt += ". "
-        elif txt[i] == '\n':
-            new_txt += " "
-        else:
-            new_txt += txt[i]
-    lst = [_.text for _ in list(sentenize(new_txt))]
+    txt = txt.replace('\n', ' ')
+    # new_txt = txt[0]
+    # for i in range(1, len(txt)):
+    #     if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
+    #         new_txt += ". "
+    #     elif txt[i] == '\n':
+    #         new_txt += " "
+    #     else:
+    #         new_txt += txt[i]
+    lst = [_.text for _ in list(sentenize(txt))]
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
@@ -165,7 +165,7 @@ def echo_only_html():
 
     def add_idx_to_set(idx):
         idx = int(idx)
-        for i in range(idx - 4, idx + 6):
+        for i in range(idx - 3, idx + 3):
             if 0 <= i < len(lst):
                 indexes.add(i)
     
@@ -197,7 +197,7 @@ def echo_only_html():
         cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
         mx_score = -1.0    
         vals = sorted(cosines, key=lambda x: x[0], reverse=True)
-        for cos, cos_idx in vals[:5]:
+        for cos, cos_idx in vals[:3]:
             add_idx_to_set(int(cos_idx))
             curr_ctx = get_context(indexes)
             indexes.clear()
