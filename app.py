@@ -192,24 +192,28 @@ def echo_only_html():
     
     def get_result(text):
         query = embed(text)
-        main_res = None
-        main_ctx = None
+        # main_res = None
+        # main_ctx = None
+        res_lst = []
         cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
-        mx_score = -1.0    
+        # mx_score = -1.0    
         vals = sorted(cosines, key=lambda x: x[0], reverse=True)
         for cos, cos_idx in vals[:3]:
             add_idx_to_set(int(cos_idx))
             curr_ctx = get_context(indexes)
             indexes.clear()
             curr_res = send_request(curr_ctx)
-            if curr_res['score'] > mx_score:
-                main_res = curr_res
-                mx_score = curr_res['score']
-                main_ctx = curr_ctx
-        return main_res, main_ctx
+            res_lst.append((curr_res, curr_ctx))
+            # if curr_res['score'] > mx_score:
+            #     main_res = curr_res
+            #     mx_score = curr_res['score']
+            #     main_ctx = curr_ctx
+        # return main_res, main_ctx
+        return res_lst
         #indexes.add(idx_ans)
     
-    main_res, main_ctx = get_result(kl_preprocess(question))
+    # main_res, main_ctx = get_result(kl_preprocess(question))
+    final_res_lst = get_result(kl_preprocess(question))
 
     def clean_sent(sent):
         for sent_idx in range(len(sent)):
@@ -222,20 +226,28 @@ def echo_only_html():
                 break
         return sent
     
-    ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
-    main_res['answer'] = clean_sent(main_res['answer'])
-    for ctx_sent in ctx_lst:
-        if main_res['answer'] in ctx_sent:
-            ctx_sent = clean_sent(ctx_sent)
-            main_res['context'] = ctx_sent.strip()
-            break
-            
+    # ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
+    # main_res['answer'] = clean_sent(main_res['answer'])
+    # for ctx_sent in ctx_lst:
+    #     if main_res['answer'] in ctx_sent:
+    #         ctx_sent = clean_sent(ctx_sent)
+    #         main_res['context'] = ctx_sent.strip()
+    #         break
+    for ctx_ans in final_res_lst:
+        ctx_lst = [_.text for _ in list(sentenize(ctx_ans[1]))]
+        ctx_ans[0]['answer'] = clean_sent(ctx_ans[0]['answer'])
+        for ctx_sent in ctx_lst:
+            if ctx_ans[0]['answer'] in ctx_sent:
+                ctx_sent = clean_sent(ctx_sent)
+                ctx_ans[0]['context'] = ctx_sent.strip()
+                break
+        ctx_ans[0]['answer'] = ctx_ans[0]['answer'].strip()        
 
     #res['answer'] = res['answer'].strip()
-    main_res['answer'] = main_res['answer'].strip()
-    logging.info(f'onlytext: return answer: {main_res}')
+    # main_res['answer'] = main_res['answer'].strip()
+    logging.info(f'onlytext: return answer: {final_res_lst}')
     indexes.clear()
-    return main_res
+    return final_res_lst
 
 # @app.route('/onlyhtml_bert', methods=["POST"])
 # def echo_only_html_bert():
