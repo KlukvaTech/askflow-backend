@@ -245,9 +245,10 @@ def echo_only_html():
 
     #res['answer'] = res['answer'].strip()
     # main_res['answer'] = main_res['answer'].strip()
-    logging.info(f'onlytext: return answer: {final_res_lst}')
+    return_final_res_lst = [_[0] for _ in final_res_lst]
+    logging.info(f'onlytext: return answer: {return_final_res_lst}')
     indexes.clear()
-    return final_res_lst
+    return return_final_res_lst
 
 # @app.route('/onlyhtml_bert', methods=["POST"])
 # def echo_only_html_bert():
