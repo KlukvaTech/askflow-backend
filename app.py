@@ -246,6 +246,7 @@ def echo_only_html():
     #res['answer'] = res['answer'].strip()
     # main_res['answer'] = main_res['answer'].strip()
     return_final_res_lst = [_[0] for _ in final_res_lst]
+    return_final_res_lst.sort(reverse=True, key=lambda x: x['score'])
     logging.info(f'onlytext: return answer: {return_final_res_lst}')
     indexes.clear()
     return return_final_res_lst
