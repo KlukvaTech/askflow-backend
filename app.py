@@ -223,7 +223,7 @@ def echo_only_html():
         #indexes.add(idx_ans)
     
     # main_res, main_ctx = get_result(kl_preprocess(question))
-    final_res_lst = get_result(kl_preprocess(question))
+    final_res_lst = get_result(kl_stemming(kl_preprocess(question)))
 
     def clean_sent(sent):
         for sent_idx in range(len(sent)):
