@@ -246,13 +246,13 @@ def echo_only_html():
     for ctx_ans in final_res_lst:
         ctx_lst = [_.text for _ in list(sentenize(ctx_ans[1]))]
         ctx_ans[0]['answer'] = clean_sent(ctx_ans[0]['answer'])
+        ctx_ans[0]['answer'] = ctx_ans[0]['answer'].strip()
         for ctx_sent in ctx_lst:
             if ctx_ans[0]['answer'] in ctx_sent:
                 ctx_sent = clean_sent(ctx_sent)
                 ctx_ans[0]['context'] = ctx_sent.strip()
                 break
-        ctx_ans[0]['answer'] = ctx_ans[0]['answer'].strip()        
-
+                
     #res['answer'] = res['answer'].strip()
     # main_res['answer'] = main_res['answer'].strip()
     return_final_res_lst = [_[0] for _ in final_res_lst]
