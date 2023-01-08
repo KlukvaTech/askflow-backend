@@ -5,3 +5,4 @@ compress_fasttext[full]
 razdel
 numpy
 trafilatura
+pymystem3
