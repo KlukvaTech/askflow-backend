@@ -11,7 +11,7 @@ import re
 from string import punctuation
 from time import sleep
 import trafilatura
-from pymystem3 import Mystem
+#from pymystem3 import Mystem
 
 app = Flask(__name__)
 TOKEN = os.getenv('TOKEN')
@@ -25,7 +25,7 @@ headers = {"Authorization": BEARER_SPACE, "Content-Type": "application/json"}
 
 model = compress_fasttext.models.CompressedFastTextKeyedVectors.load('model/geowac_tokens_sg_300_5_2020-100K-20K-100.bin')
 
-m = Mystem()
+#m = Mystem()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -43,8 +43,8 @@ def kl_tokenize(sentence):
     res = [token for token in tokens if token not in punctuation]
     return res
 
-def kl_stemming(sentence):
-    return ''.join(m.lemmatize(sentence))
+# def kl_stemming(sentence):
+#     return ''.join(m.lemmatize(sentence))
 
 def cosine(u, v):
     if np.isnan(u).any() or np.isnan(v).any(): 
@@ -165,11 +165,11 @@ def echo_only_html():
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
 
-    stemmed_lst = []
-    for sent in new_lst:
-        stemmed_lst.append(kl_stemming(sent))
+    # stemmed_lst = []
+    # for sent in new_lst:
+    #     stemmed_lst.append(kl_stemming(sent))
     #new_lst = [x for x in new_lst if x]
-    embedded_data = [(embed(stemmed_lst[i]), i) for i in range(len(stemmed_lst))]
+    embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
     
     indexes = set()
 
@@ -223,7 +223,7 @@ def echo_only_html():
         #indexes.add(idx_ans)
     
     # main_res, main_ctx = get_result(kl_preprocess(question))
-    final_res_lst = get_result(kl_stemming(kl_preprocess(question)))
+    final_res_lst = get_result(kl_preprocess(question))
 
     def clean_sent(sent):
         for sent_idx in range(len(sent)):
