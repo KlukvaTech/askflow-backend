@@ -11,6 +11,7 @@ import re
 from string import punctuation
 from time import sleep
 import trafilatura
+#from pymystem3 import Mystem
 
 app = Flask(__name__)
 TOKEN = os.getenv('TOKEN')
@@ -23,6 +24,8 @@ BEARER_SPACE = "Bearer " + TOKEN_SPACE
 headers = {"Authorization": BEARER_SPACE, "Content-Type": "application/json"}
 
 model = compress_fasttext.models.CompressedFastTextKeyedVectors.load('model/geowac_tokens_sg_300_5_2020-100K-20K-100.bin')
+
+#m = Mystem()
 
 logging.basicConfig(level=logging.INFO)
 
@@ -39,6 +42,9 @@ def kl_tokenize(sentence):
     tokens = [_.text for _ in list(tokenize(sentence))]
     res = [token for token in tokens if token not in punctuation]
     return res
+
+# def kl_stemming(sentence):
+#     return ''.join(m.lemmatize(sentence))
 
 def cosine(u, v):
     if np.isnan(u).any() or np.isnan(v).any(): 
@@ -145,19 +151,23 @@ def echo_only_html():
     #query({"inputs": {"question": "Turn", "context": "Turn! Turn! Turn!"}})
 
     txt = trafilatura.extract(html_req)
-    #txt = txt.replace('\n', ' ')
-    new_txt = txt[0]
-    for i in range(1, len(txt)):
-        if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
-            new_txt += ". "
-        elif txt[i] == '\n':
-            new_txt += " "
-        else:
-            new_txt += txt[i]
-    lst = [_.text for _ in list(sentenize(new_txt))]
+    txt = txt.replace('\n', ' ')
+    # new_txt = txt[0]
+    # for i in range(1, len(txt)):
+    #     if txt[i] == '\n' and (txt[i - 1] != '.' or txt[i - 1] != '!' or txt[i - 1] != '?'):
+    #         new_txt += ". "
+    #     elif txt[i] == '\n':
+    #         new_txt += " "
+    #     else:
+    #         new_txt += txt[i]
+    lst = [_.text for _ in list(sentenize(txt))]
     new_lst = []
     for sent in lst:
         new_lst.append(kl_preprocess(sent))
+
+    # stemmed_lst = []
+    # for sent in new_lst:
+    #     stemmed_lst.append(kl_stemming(sent))
     #new_lst = [x for x in new_lst if x]
     embedded_data = [(embed(new_lst[i]), i) for i in range(len(new_lst))]
     
@@ -165,7 +175,7 @@ def echo_only_html():
 
     def add_idx_to_set(idx):
         idx = int(idx)
-        for i in range(idx - 2, idx + 3):
+        for i in range(idx - 3, idx + 3):
             if 0 <= i < len(lst):
                 indexes.add(i)
     
@@ -192,24 +202,28 @@ def echo_only_html():
     
     def get_result(text):
         query = embed(text)
-        main_res = None
-        main_ctx = None
+        # main_res = None
+        # main_ctx = None
+        res_lst = []
         cosines = [(cosine(x[0], query), x[1]) for x in embedded_data]
-        mx_score = -1.0    
+        # mx_score = -1.0    
         vals = sorted(cosines, key=lambda x: x[0], reverse=True)
-        for cos, cos_idx in vals[:5]:
+        for cos, cos_idx in vals[:3]:
             add_idx_to_set(int(cos_idx))
             curr_ctx = get_context(indexes)
             indexes.clear()
             curr_res = send_request(curr_ctx)
-            if curr_res['score'] > mx_score:
-                main_res = curr_res
-                mx_score = curr_res['score']
-                main_ctx = curr_ctx
-        return main_res, main_ctx
+            res_lst.append((curr_res, curr_ctx))
+            # if curr_res['score'] > mx_score:
+            #     main_res = curr_res
+            #     mx_score = curr_res['score']
+            #     main_ctx = curr_ctx
+        # return main_res, main_ctx
+        return res_lst
         #indexes.add(idx_ans)
     
-    main_res, main_ctx = get_result(kl_preprocess(question))
+    # main_res, main_ctx = get_result(kl_preprocess(question))
+    final_res_lst = get_result(kl_preprocess(question))
 
     def clean_sent(sent):
         for sent_idx in range(len(sent)):
@@ -222,20 +236,30 @@ def echo_only_html():
                 break
         return sent
     
-    ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
-    main_res['answer'] = clean_sent(main_res['answer'])
-    for ctx_sent in ctx_lst:
-        if main_res['answer'] in ctx_sent:
-            ctx_sent = clean_sent(ctx_sent)
-            main_res['context'] = ctx_sent.strip()
-            break
-            
-
+    # ctx_lst = [_.text for _ in list(sentenize(main_ctx))]
+    # main_res['answer'] = clean_sent(main_res['answer'])
+    # for ctx_sent in ctx_lst:
+    #     if main_res['answer'] in ctx_sent:
+    #         ctx_sent = clean_sent(ctx_sent)
+    #         main_res['context'] = ctx_sent.strip()
+    #         break
+    for ctx_ans in final_res_lst:
+        ctx_lst = [_.text for _ in list(sentenize(ctx_ans[1]))]
+        ctx_ans[0]['answer'] = clean_sent(ctx_ans[0]['answer'])
+        ctx_ans[0]['answer'] = ctx_ans[0]['answer'].strip()
+        for ctx_sent in ctx_lst:
+            if ctx_ans[0]['answer'] in ctx_sent:
+                ctx_sent = clean_sent(ctx_sent)
+                ctx_ans[0]['context'] = ctx_sent.strip()
+                break
+                
     #res['answer'] = res['answer'].strip()
-    main_res['answer'] = main_res['answer'].strip()
-    logging.info(f'onlytext: return answer: {main_res}')
+    # main_res['answer'] = main_res['answer'].strip()
+    return_final_res_lst = [_[0] for _ in final_res_lst]
+    return_final_res_lst.sort(reverse=True, key=lambda x: x['score'])
+    logging.info(f'onlytext: return answer: {return_final_res_lst}')
     indexes.clear()
-    return main_res
+    return return_final_res_lst
 
 # @app.route('/onlyhtml_bert', methods=["POST"])
 # def echo_only_html_bert():
